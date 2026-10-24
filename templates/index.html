@@ -1,0 +1,1174 @@
+{% extends "base.html" %}
+{% block title %}منصة سلة الذكية | معالج واستيراد ملفات Excel{% endblock %}
+
+{% block content %}
+<!-- ═══════════════════════════════════════════════════════════
+     Hero Banner & Overview
+     ═══════════════════════════════════════════════════════════ -->
+<div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl glass-card glow-card">
+  <div>
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mb-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span>محرك ديسكتوب فائق السرعة والمطابقة</span>
+    </div>
+    <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">
+      معالجة واستيراد ملفات Excel بدقة الذكاء الاصطناعي
+    </h1>
+    <p class="text-sm text-slate-400 mt-1 max-w-2xl leading-relaxed">
+      ارفع ملف المنتجات، دع الذكاء الاصطناعي يبحث عن أنسب وأدق الصور تلقائياً، راجع النتائج ثم نزّل قوالب سلة الرسمية المعتمدة بضغطة زر واحدة.
+    </p>
+  </div>
+
+  <div class="flex items-center gap-2 self-start md:self-auto">
+    <button onclick="resetAll()" class="btn btn-sm btn-ghost border border-slate-700/60 hover:bg-slate-800 text-slate-200 rounded-xl gap-2 font-semibold">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      <span>إعادة تعيين</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     شريط الأدوات الثابت السريع (عند التمرير)
+     ═══════════════════════════════════════════════════════════ -->
+<div id="sticky-toolbar" class="hidden sticky top-24 z-40 mb-6 transition-all duration-300">
+  <div class="p-3 rounded-2xl glass-card border border-emerald-500/30 shadow-2xl backdrop-blur-xl bg-slate-900/90">
+    <div class="flex flex-wrap gap-3 items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button onclick="resetAll()" class="btn btn-xs sm:btn-sm btn-ghost hover:bg-slate-800 text-slate-200 border border-slate-700 rounded-xl gap-1">
+          📁 ملف جديد
+        </button>
+
+        <div class="h-5 w-px bg-slate-700 hidden sm:block"></div>
+
+        <label class="flex items-center gap-2 cursor-pointer bg-slate-800/60 px-2.5 py-1 rounded-xl border border-slate-700/50">
+          <input
+            type="checkbox"
+            id="use-ai"
+            class="checkbox checkbox-xs sm:checkbox-sm checkbox-primary"
+            checked
+          />
+          <span class="text-xs font-bold text-slate-200">✨ AI Vision</span>
+        </label>
+
+        <button
+          onclick="startImageSearch()"
+          id="search-btn-2"
+          class="btn btn-xs sm:btn-sm btn-success text-slate-950 font-bold gap-1 rounded-xl"
+        >
+          🔍 البحث عن الصور
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- عداد المنتجات -->
+        <span id="toolbar-products-count" class="badge badge-sm bg-slate-800 border-slate-700 text-slate-300 font-semibold"></span>
+        <span id="toolbar-selected-count" class="badge badge-sm badge-primary font-bold hidden"></span>
+
+        <!-- زر التصدير في الشريط -->
+        <div class="dropdown dropdown-end">
+          <label tabindex="0" class="btn btn-xs sm:btn-sm bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold gap-1 rounded-xl shadow-md export-btn-label">
+            📥 تصدير قالب سلة
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </label>
+          <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-2xl glass-card rounded-2xl w-72 mt-2 border border-slate-700">
+            <li class="menu-title text-xs text-emerald-400 font-bold">اختر نوع قالب سلة</li>
+            <li>
+              <a onclick="exportSallaTemplate('new')" class="flex flex-col items-start gap-0.5 p-2.5 rounded-xl hover:bg-slate-800/80">
+                <span class="font-bold text-sm text-white">🆕 قالب منتجات جديدة</span>
+                <span class="text-[11px] text-slate-400">للإضافة فقط (تعبئة عمود 4)</span>
+              </a>
+            </li>
+            <li>
+              <a onclick="exportSallaTemplate('update')" class="flex flex-col items-start gap-0.5 p-2.5 rounded-xl hover:bg-slate-800/80">
+                <span class="font-bold text-sm text-white">🔄 قالب تحديث منتجات</span>
+                <span class="text-[11px] text-slate-400">للتحديث بـ No. (تعبئة عمود 5)</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     الخطوة 1: منطقة رفع الملف الفخمة (Upload Panel)
+     ═══════════════════════════════════════════════════════════ -->
+<div id="upload-panel" class="mb-8">
+  <div class="p-8 sm:p-12 rounded-3xl glass-card glow-card border border-slate-700/60 relative overflow-hidden">
+    <!-- الزخرفة الجمالية للخلفية -->
+    <div class="absolute -top-24 -left-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-2xl mx-auto text-center">
+      <!-- أيكون الرفع الرئيسي -->
+      <div class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-emerald-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+      </div>
+
+      <h2 class="text-2xl font-black text-white mb-2">الخطوة 1: ارفع ملف Excel للمنتجات</h2>
+      <p class="text-sm text-slate-400 mb-8 leading-relaxed">
+        قم بسحب وإفلات ملف Excel هنا أو اضغط لتحديد الملف من جهازك للبدء في الفحص
+      </p>
+
+      <!-- Drag & Drop Zone -->
+      <div
+        id="drop-zone"
+        onclick="document.getElementById('excel-file').click()"
+        class="border-2 border-dashed border-slate-600/80 hover:border-emerald-400 bg-slate-900/50 hover:bg-slate-900/90 transition-all duration-300 rounded-3xl p-8 cursor-pointer group"
+      >
+        <input
+          type="file"
+          id="excel-file"
+          accept=".xlsx,.xls,.csv"
+          class="hidden"
+          onchange="handleFileSelect(this)"
+        />
+
+        <div class="flex flex-col items-center justify-center gap-2">
+          <div class="p-3 rounded-2xl bg-slate-800 text-slate-300 group-hover:text-emerald-400 group-hover:scale-110 transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <span id="file-name-display" class="text-base font-bold text-slate-200 group-hover:text-white transition-colors">
+            اضغط هنا لاختيار الملف أو أفلته داخل هذا الإطار
+          </span>
+          <span class="text-xs text-slate-500 font-mono">
+            يدعم صيغ Excel (.xlsx, .xls) والملفات المجدولة (.csv)
+          </span>
+        </div>
+      </div>
+
+      <!-- زر الإرسال والتحليل -->
+      <div class="mt-8 flex justify-center">
+        <button
+          onclick="uploadFile()"
+          id="upload-btn"
+          class="btn btn-lg px-8 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-black rounded-2xl shadow-xl shadow-emerald-500/20 gap-3 border-none"
+        >
+          <span>📤 رفع وتحليل ملف المنتجات</span>
+        </button>
+      </div>
+
+      <!-- Feature cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10 text-right">
+        <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div class="text-emerald-400 font-bold text-sm mb-1">🏷️ كشف الأعمدة التلقائي</div>
+          <p class="text-xs text-slate-400">يتعرف المحرك تلقائياً على اسم المنتج، الباركود، السعر والكمية بأي صيغة عربية أو إنجليزية.</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div class="text-indigo-400 font-bold text-sm mb-1">🔍 محرك OpenSERP المزدوج</div>
+          <p class="text-xs text-slate-400">استخراج صور عالية الجودة بسرعة مذهلة عبر فحص متعدد المصادر واحتياطي DuckDuckGo.</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div class="text-teal-400 font-bold text-sm mb-1">✨ تصنيف الذكاء الاصطناعي</div>
+          <p class="text-xs text-slate-400">تحليل الصور عبر Gemini للتأكد من مطابقة المنتج بدقة وخلو الصورة من العيوب أو العلامات المائية.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     الخطوة 2: معاينة المنتجات المكتشفة (Preview Panel)
+     ═══════════════════════════════════════════════════════════ -->
+<div id="preview-panel" class="hidden mb-8">
+  <div class="p-6 rounded-3xl glass-card glow-card border border-slate-700/60">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+      <div>
+        <h2 class="text-xl font-black text-white flex items-center gap-2">
+          <span>📋 الخطوة 2: مراجعة المنتجات المكتشفة</span>
+          <span id="products-count" class="badge badge-emerald bg-emerald-500/20 border-emerald-500/40 text-emerald-400 font-bold text-sm px-3 py-1"></span>
+        </h2>
+        <p id="columns-detected" class="text-xs text-slate-400 mt-1 font-mono"></p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <label class="flex items-center gap-2 cursor-pointer bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+          <input
+            type="checkbox"
+            id="use-ai-2"
+            class="checkbox checkbox-sm checkbox-primary"
+            checked
+          />
+          <span class="text-xs font-bold text-slate-200">🤖 تفعيل AI Vision</span>
+        </label>
+
+        <button
+          onclick="startImageSearch()"
+          id="search-btn"
+          class="btn bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-black rounded-xl shadow-lg shadow-emerald-500/20 border-none gap-2"
+        >
+          🔍 بدء البحث الذكي عن الصور
+        </button>
+      </div>
+    </div>
+
+    <!-- جدول المعاينة الفخم -->
+    <div class="overflow-x-auto max-h-[28rem] rounded-2xl border border-slate-800">
+      <table class="table table-pin-rows">
+        <thead class="bg-slate-900/90 text-slate-300 text-xs">
+          <tr>
+            <th class="w-12 text-center">#</th>
+            <th>اسم المنتج</th>
+            <th class="w-40 font-mono">الباركود (Barcode)</th>
+            <th class="w-28">السعر</th>
+            <th class="w-24">الكمية</th>
+          </tr>
+        </thead>
+        <tbody id="preview-tbody" class="text-sm divide-y divide-slate-800/60"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     الخطوة 3: شاشة متابعة التقدم الحية (Progress Panel)
+     ═══════════════════════════════════════════════════════════ -->
+<div id="progress-panel" class="hidden mb-8">
+  <div class="p-8 sm:p-12 rounded-3xl glass-card glow-card border border-emerald-500/30 text-center max-w-2xl mx-auto">
+    <div class="flex flex-col items-center">
+      <!-- العداد الدائري -->
+      <div
+        class="radial-progress text-emerald-400 font-black text-2xl mb-6 shadow-2xl shadow-emerald-500/20 active-step-glow"
+        id="progress-circle"
+        style="--value: 0; --size: 7rem; --thickness: 8px"
+      >
+        0%
+      </div>
+
+      <h3 class="text-xl font-black text-white mb-1" id="progress-status">
+        ⏳ جارٍ تجهيز محرك البحث...
+      </h3>
+      <p class="text-sm text-slate-400 mb-6 font-medium" id="progress-detail">
+        يرجى الانتظار، يبحث النظام ويطابق الصور تلقائياً...
+      </p>
+
+      <div class="w-full bg-slate-800 rounded-full h-3 mb-4 overflow-hidden border border-slate-700">
+        <div id="progress-bar-fill" class="bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 h-full w-0 transition-all duration-300 rounded-full"></div>
+      </div>
+      <progress id="progress-bar" value="0" max="100" class="hidden"></progress>
+
+      <div class="text-xs text-slate-400 font-mono px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-800">
+        <span id="progress-count">0 / 0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     الخطوة 4: لوحة النتائج وتصدير القوالب (Results Panel)
+     ═══════════════════════════════════════════════════════════ -->
+<div id="results-panel" class="hidden mb-12">
+  <div class="p-6 rounded-3xl glass-card glow-card border border-slate-700/60">
+
+    <!-- شريط الإحصائيات والأزرار العلوية -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 pb-6 border-b border-slate-800">
+      <div>
+        <h2 class="text-2xl font-black text-white flex items-center gap-3">
+          <span>🎯 الخطوة 4: مراجعة وتخصيص النتائج</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-1">
+          راجع الصور المطابقة، اختر أي صورة بديلة بالنقر عليها، ثم حمّل القالب المطلوب بضغطة زر.
+        </p>
+      </div>
+
+      <!-- مجموعة أزرار التحكم -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- تحديد الكل -->
+        <label class="flex items-center gap-2 cursor-pointer bg-slate-800/80 hover:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700 transition-colors">
+          <input
+            type="checkbox"
+            id="select-all-products"
+            class="checkbox checkbox-sm checkbox-primary"
+            onchange="toggleSelectAll(this.checked)"
+          />
+          <span class="text-xs font-bold text-slate-200">تحديد الكل</span>
+        </label>
+
+        <!-- عداد المحدد -->
+        <span id="selected-products-count" class="badge bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold text-xs py-2 px-3">0 محدد</span>
+
+        <!-- الفاشلة فقط -->
+        <button
+          onclick="selectOnlyFailed()"
+          class="btn btn-sm btn-ghost bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-semibold gap-1"
+        >
+          ⚠️ الفاشلة فقط
+        </button>
+
+        <!-- إعادة اختبار المحدد -->
+        <button
+          onclick="reanalyzeSelected()"
+          id="reanalyze-selected-btn"
+          class="btn btn-sm btn-ghost bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-semibold gap-1"
+          disabled
+        >
+          🔄 إعادة الفحص
+        </button>
+
+        <!-- تصدير قالب سلة الرئيسي -->
+        <div class="dropdown dropdown-end">
+          <label tabindex="0" class="btn btn-sm bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black rounded-xl shadow-lg shadow-emerald-500/20 border-none gap-2 export-btn-label">
+            📥 تصدير قالب Salla
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </label>
+          <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-2xl glass-card rounded-2xl w-80 mt-2 border border-slate-700">
+            <li class="menu-title text-xs text-emerald-400 font-bold">تصدير المنتجات المحددة في ملف Excel</li>
+            <li>
+              <a onclick="exportSallaTemplate('new')" class="flex flex-col items-start gap-1 p-3 rounded-xl hover:bg-slate-800">
+                <span class="font-bold text-sm text-white">🆕 قالب منتجات جديدة (New Products)</span>
+                <span class="text-xs text-slate-400">يكتب روابط الصور في عمود 4 (الصور) للإضافة الفورية إلى متجرك.</span>
+              </a>
+            </li>
+            <li>
+              <a onclick="exportSallaTemplate('update')" class="flex flex-col items-start gap-1 p-3 rounded-xl hover:bg-slate-800">
+                <span class="font-bold text-sm text-white">🔄 قالب تحديث منتجات (Update Products)</span>
+                <span class="text-xs text-slate-400">يكتب روابط الصور في عمود 5 (الصور) مع رقم No. لتحديث المنتجات القائمة.</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- كروت إحصائيات سريعة للنتائج -->
+    <div id="results-summary-info" class="mb-6"></div>
+
+    <!-- جدول النتائج الفخم -->
+    <div class="overflow-x-auto rounded-2xl border border-slate-800">
+      <table class="table table-pin-rows">
+        <thead class="bg-slate-900/90 text-slate-300 text-xs">
+          <tr>
+            <th class="w-12 text-center">اختيار</th>
+            <th class="w-24 text-center">الصورة الأساسية</th>
+            <th>بيانات المنتج</th>
+            <th class="w-36 font-mono">الباركود</th>
+            <th class="w-24">السعر</th>
+            <th class="w-28 text-center">درجة المطابقة</th>
+            <th class="w-72">الصور البديلة (اضغط للتبديل)</th>
+          </tr>
+        </thead>
+        <tbody id="results-tbody" class="text-sm divide-y divide-slate-800/60"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     مودال معاينة وتكبير الصورة (Preview Modal)
+     ═══════════════════════════════════════════════════════════ -->
+<dialog id="image-preview-modal" class="modal backdrop-blur-md">
+  <div class="modal-box max-w-4xl glass-card border border-slate-700 p-6 rounded-3xl shadow-2xl">
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex items-center gap-3">
+        <h3 class="font-black text-lg text-white" id="preview-title">معاينة تفاصيل الصورة</h3>
+        <span id="current-main-badge" class="badge badge-success text-slate-950 font-bold text-xs hidden">
+          ✅ الصورة الأساسية حالياً
+        </span>
+      </div>
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost text-slate-400 hover:text-white">✕</button>
+      </form>
+    </div>
+
+    <!-- منطقة عرض الصورة -->
+    <div class="flex justify-center items-center bg-slate-950/80 rounded-2xl p-4 min-h-[22rem] border border-slate-800/80">
+      <img
+        id="preview-image"
+        src=""
+        alt="preview"
+        class="max-w-full max-h-[60vh] object-contain rounded-xl shadow-2xl transition-transform"
+      />
+    </div>
+
+    <div id="preview-info" class="mt-4 p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-300 font-mono"></div>
+
+    <div class="modal-action justify-between mt-6">
+      <button
+        type="button"
+        id="set-as-main-btn"
+        onclick="setAsMainImage()"
+        class="btn bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-black rounded-xl gap-2 border-none shadow-lg shadow-emerald-500/20 hidden"
+      >
+        ⭐ تعيين كصورة أساسية لهذا المنتج
+      </button>
+      <form method="dialog">
+        <button class="btn btn-ghost border border-slate-700 text-slate-300 rounded-xl">إغلاق</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let parsedProducts = [];
+  let currentResults = [];
+  let currentPreviewContext = null;
+
+  // ═══════════════════════════════════════════════════════════
+  // مزامنة شريط الخطوات (Ribbon Updater)
+  // ═══════════════════════════════════════════════════════════
+  function updateRibbon(activeStep) {
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById(`step-ribbon-${i}`);
+      if (!el) continue;
+      const numBox = el.querySelector('div');
+      
+      if (i < activeStep) {
+        // خطوة منجزة
+        el.className = "flex items-center gap-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 transition-all";
+        el.style.opacity = "1";
+        if (numBox) {
+          numBox.className = "w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-sm";
+          numBox.innerHTML = "✓";
+        }
+      } else if (i === activeStep) {
+        // خطوة حالية نشطة
+        el.className = "flex items-center gap-3 p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 glow-emerald active-step-glow transition-all";
+        el.style.opacity = "1";
+        if (numBox) {
+          numBox.className = "w-8 h-8 rounded-lg bg-emerald-500 text-slate-950 font-black flex items-center justify-center text-sm shadow-md";
+          numBox.innerHTML = i;
+        }
+      } else {
+        // خطوة قادمة
+        el.className = "flex items-center gap-3 p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 transition-all";
+        el.style.opacity = "0.6";
+        if (numBox) {
+          numBox.className = "w-8 h-8 rounded-lg bg-slate-800 text-slate-400 font-bold flex items-center justify-center text-sm";
+          numBox.innerHTML = i;
+        }
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Drag & Drop File Handlers
+  // ═══════════════════════════════════════════════════════════
+  function handleFileSelect(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const display = document.getElementById("file-name-display");
+      if (display) {
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+        display.innerHTML = `✅ تم اختيار: <strong class="text-emerald-400">${escapeHtml(file.name)}</strong> (${sizeMb} MB)`;
+      }
+    }
+  }
+
+  const dropZone = document.getElementById("drop-zone");
+  if (dropZone) {
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add("border-emerald-400", "bg-slate-900/90");
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove("border-emerald-400", "bg-slate-900/90");
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) {
+        document.getElementById('excel-file').files = files;
+        handleFileSelect(document.getElementById('excel-file'));
+      }
+    }, false);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // رفع الملف
+  // ═══════════════════════════════════════════════════════════
+  async function uploadFile() {
+    const fileInput = document.getElementById("excel-file");
+    const btn = document.getElementById("upload-btn");
+
+    if (!fileInput.files.length) {
+      alert("يرجى اختيار ملف Excel أولاً");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> جارٍ فحص وتحليل الملف...';
+
+    try {
+      const res = await fetch("/api/parse", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "فشل تحليل الملف");
+
+      parsedProducts = data.products;
+      renderPreview(data);
+
+      document.getElementById("preview-panel").classList.remove("hidden");
+      document.getElementById("upload-panel").classList.add("hidden");
+      document.getElementById("sticky-toolbar").classList.remove("hidden");
+      document.getElementById("toolbar-products-count").textContent = `${data.total} منتج`;
+
+      updateRibbon(2);
+    } catch (e) {
+      alert("❌ " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = "<span>📤 رفع وتحليل ملف المنتجات</span>";
+    }
+  }
+
+  function renderPreview(data) {
+    document.getElementById("products-count").textContent = `${data.total} منتج تم اكتشافه`;
+
+    const detected = Object.entries(data.columns_detected)
+      .map(([k, v]) => `<span class="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700/60">${k} ➜ ${v}</span>`)
+      .join(" ");
+    document.getElementById("columns-detected").innerHTML = `الأعمدة المكتشفة: ${detected}`;
+
+    const tbody = document.getElementById("preview-tbody");
+    tbody.innerHTML = data.products
+      .slice(0, 100)
+      .map(
+        (p, i) => `
+        <tr class="hover:bg-slate-800/40 transition-colors">
+            <td class="text-center font-mono text-xs text-slate-500">${i + 1}</td>
+            <td class="font-bold text-white">${escapeHtml(p.name)}</td>
+            <td class="font-mono text-xs text-emerald-400 font-semibold">${escapeHtml(p.barcode || "—")}</td>
+            <td class="text-slate-300">${escapeHtml(p.price || "—")}</td>
+            <td class="text-slate-400">${escapeHtml(p.quantity || "—")}</td>
+        </tr>
+    `,
+      )
+      .join("");
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // البحث عن الصور
+  // ═══════════════════════════════════════════════════════════
+  async function startImageSearch() {
+    const btns = [
+      document.getElementById("search-btn"),
+      document.getElementById("search-btn-2"),
+    ].filter(Boolean);
+
+    btns.forEach((b) => {
+      b.disabled = true;
+      b.innerHTML = '<span class="loading loading-spinner loading-sm"></span> جارٍ البحث...';
+    });
+
+    document.getElementById("preview-panel").classList.add("hidden");
+    document.getElementById("progress-panel").classList.remove("hidden");
+    document.getElementById("results-panel").classList.add("hidden");
+
+    updateRibbon(3);
+
+    // إعادة تعيين المؤشرات
+    document.getElementById("progress-circle").style.setProperty("--value", 0);
+    document.getElementById("progress-circle").textContent = "0%";
+    const fillEl = document.getElementById("progress-bar-fill");
+    if (fillEl) fillEl.style.width = "0%";
+    document.getElementById("progress-bar").value = 0;
+    document.getElementById("progress-count").textContent = `0 / ${parsedProducts.length}`;
+    document.getElementById("progress-status").textContent = "⏳ تجهيز محرك البحث...";
+    document.getElementById("progress-detail").textContent = "سيبدأ البحث تلقائيًا الآن...";
+
+    const jobId = "job_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
+
+    // متابعة التقدم
+    let pollInterval = setInterval(async () => {
+      try {
+        const r = await fetch(`/api/progress/${jobId}`);
+        const p = await r.json();
+        const percent = p.total > 0 ? Math.round((p.processed / p.total) * 100) : 0;
+
+        document.getElementById("progress-circle").style.setProperty("--value", percent);
+        document.getElementById("progress-circle").textContent = percent + "%";
+        if (fillEl) fillEl.style.width = percent + "%";
+        document.getElementById("progress-bar").value = percent;
+        document.getElementById("progress-count").textContent =
+          `${p.processed} / ${p.total} (ناجح: ${p.succeeded} | متبقي/فشل: ${p.failed})`;
+
+        if (p.status === "preparing") {
+          document.getElementById("progress-status").textContent = "🔧 تجهيز محرك البحث...";
+          document.getElementById("progress-detail").textContent = p.current || "يرجى الانتظار...";
+        } else if (p.status === "processing") {
+          document.getElementById("progress-status").textContent = "🔍 جاري البحث والمطابقة...";
+          document.getElementById("progress-detail").textContent = p.current ? `فحص: ${p.current}` : "";
+        } else if (p.status === "completed") {
+          document.getElementById("progress-status").textContent = "✅ اكتملت مطابقة الصور";
+          clearInterval(pollInterval);
+        } else if (p.status === "failed") {
+          document.getElementById("progress-status").textContent = "❌ فشل البحث";
+          clearInterval(pollInterval);
+        }
+      } catch (e) {}
+    }, 1000);
+
+    const useAiInput = document.getElementById("use-ai") || document.getElementById("use-ai-2");
+    const useAi = useAiInput?.checked ?? true;
+
+    try {
+      const res = await fetch("/api/search-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          products: parsedProducts,
+          use_ai: useAi,
+          job_id: jobId,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "فشل البحث");
+
+      clearInterval(pollInterval);
+
+      document.getElementById("progress-circle").style.setProperty("--value", 100);
+      document.getElementById("progress-circle").textContent = "100%";
+      if (fillEl) fillEl.style.width = "100%";
+      document.getElementById("progress-bar").value = 100;
+      document.getElementById("progress-status").textContent = "✅ اكتملت العملية بنجاح";
+      document.getElementById("progress-detail").textContent =
+        `نجح: ${data.summary.success} | بدون صورة: ${data.summary.failed} | الوقت: ${data.summary.elapsed} ثانية`;
+
+      currentResults = data.results;
+
+      setTimeout(() => {
+        document.getElementById("progress-panel").classList.add("hidden");
+        document.getElementById("results-panel").classList.remove("hidden");
+        updateRibbon(4);
+        renderResults(data.results);
+      }, 700);
+    } catch (e) {
+      clearInterval(pollInterval);
+      alert("❌ " + e.message);
+    } finally {
+      btns.forEach((b) => {
+        b.disabled = false;
+        if (b.id === "search-btn") b.innerHTML = "🔍 بدء البحث الذكي عن الصور";
+        else b.innerHTML = "🔍 البحث عن الصور";
+      });
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // عرض وتنسيق النتائج
+  // ═══════════════════════════════════════════════════════════
+  function scoreBadgeHtml(score) {
+    if (!score) return '<span class="badge badge-sm bg-rose-500/20 text-rose-300 border-rose-500/30">بدون</span>';
+    if (score >= 80) return `<span class="badge badge-sm bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold">🟢 ${score}% ممتاز</span>`;
+    if (score >= 60) return `<span class="badge badge-sm bg-amber-500/20 text-amber-300 border-amber-500/30 font-bold">🟡 ${score}% جيد</span>`;
+    return `<span class="badge badge-sm bg-rose-500/20 text-rose-300 border-rose-500/30 font-bold">🔴 ${score}% ضعيف</span>`;
+  }
+
+  function renderResults(results) {
+    currentResults = results;
+    const tbody = document.getElementById("results-tbody");
+    const successCount = results.filter((r) => r.search_success).length;
+    const failedCount = results.length - successCount;
+    const highQuality = results.filter((r) => (r.search_score || 0) >= 80).length;
+
+    // حفظ التحديدات السابقة إن وُجدت
+    const previousSelected = new Set();
+    const existingCheckboxes = document.querySelectorAll(".result-checkbox");
+    const hadExistingCheckboxes = existingCheckboxes.length > 0;
+    existingCheckboxes.forEach((cb) => {
+      if (cb.checked) {
+        previousSelected.add(parseInt(cb.dataset.index));
+      }
+    });
+
+    // كروت الإحصاءات الفخمة
+    document.getElementById("results-summary-info").innerHTML = `
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800">
+          <p class="text-[11px] font-bold text-slate-400">إجمالي المنتجات</p>
+          <p class="text-xl font-black text-white mt-1">${results.length}</p>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+          <p class="text-[11px] font-bold text-emerald-400">صور تم العثور عليها</p>
+          <p class="text-xl font-black text-emerald-300 mt-1">${successCount}</p>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+          <p class="text-[11px] font-bold text-indigo-400">دقة فائقة (80%+)</p>
+          <p class="text-xl font-black text-indigo-300 mt-1">${highQuality}</p>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+          <p class="text-[11px] font-bold text-amber-400">تحتاج مراجعة / فشل</p>
+          <p class="text-xl font-black text-amber-300 mt-1">${failedCount}</p>
+        </div>
+      </div>
+    `;
+
+    tbody.innerHTML = results
+      .map((r, i) => {
+        const displayUrl = r.image_url || r.candidates?.[0]?.image_url || null;
+        const isChecked = hadExistingCheckboxes ? previousSelected.has(i) : !!displayUrl;
+
+        const mainImage = displayUrl
+          ? `<div class="relative group/img cursor-pointer" onclick="openPreviewModal(${i}, -1)">
+              <img src="${escapeAttr(displayUrl)}"
+                   class="w-16 h-16 object-cover rounded-xl border border-slate-700/80 group-hover/img:border-emerald-400 shadow-md transition-all group-hover/img:scale-105"
+                   onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🖼️</text></svg>'">
+              <span class="absolute inset-0 bg-emerald-500/20 opacity-0 group-hover/img:opacity-100 rounded-xl flex items-center justify-center text-xs font-bold text-white transition-opacity">تكبير</span>
+             </div>`
+          : `<div class="w-16 h-16 bg-slate-900 border border-dashed border-slate-700 rounded-xl flex items-center justify-center text-slate-500 text-xs">بدون صورة</div>`;
+
+        const candidates = r.candidates || [];
+        const alternativesHtml =
+          candidates.length > 1
+            ? candidates
+                .slice(1, 5)
+                .map(
+                  (c, cIdx) => `
+                <div class="relative group/alt cursor-pointer" onclick="openPreviewModal(${i}, ${cIdx + 1})">
+                  <img src="${escapeAttr(c.image_url)}"
+                       class="w-10 h-10 object-cover rounded-lg border border-slate-700/70 group-hover/alt:border-teal-400 transition-all group-hover/alt:scale-110 shadow-sm"
+                       title="${escapeAttr(c.title || '')} - درجة: ${c.score || ''}">
+                  <span class="absolute -bottom-1 -left-1 px-1 py-0.2 bg-slate-950/90 text-[9px] rounded text-slate-300 font-mono">${c.score || ''}</span>
+                </div>
+            `,
+                )
+                .join("")
+            : '<span class="text-xs text-slate-600">—</span>';
+
+        const aiUsed = r.ai_vision && r.ai_vision.used;
+        const aiBadge = aiUsed
+          ? `<span class="badge badge-xs bg-indigo-500/20 text-indigo-300 border-indigo-500/30" title="${escapeAttr(r.ai_vision?.reasoning || '')}">AI</span>`
+          : "";
+        const manualBadge = r.manual_selection
+          ? `<span class="badge badge-xs bg-emerald-500/20 text-emerald-300 border-emerald-500/30">معدل ⭐</span>`
+          : "";
+
+        return `
+            <tr id="result-row-${i}" data-index="${i}" class="hover:bg-slate-800/30 transition-colors">
+                <td class="text-center">
+                    <input type="checkbox" class="result-checkbox checkbox checkbox-sm checkbox-primary"
+                           data-index="${i}" onchange="updateSelectionCount()" ${isChecked ? 'checked' : ''}>
+                </td>
+                <td class="text-center">${mainImage}</td>
+                <td>
+                    <div class="font-bold text-white mb-1">${escapeHtml(r.name)}</div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      ${r.search_success
+                        ? '<span class="text-[11px] text-emerald-400 font-semibold">✓ تم التجهيز</span>'
+                        : `<span class="text-[11px] text-amber-400 font-semibold">⚠️ ${escapeHtml(r.error || "يتطلب فحص يدوي")}</span>`}
+                      ${aiBadge} ${manualBadge}
+                    </div>
+                </td>
+                <td class="font-mono text-xs text-emerald-400 font-semibold">${escapeHtml(r.barcode || "—")}</td>
+                <td class="text-slate-300 font-semibold">${escapeHtml(r.price || "—")}</td>
+                <td class="text-center">${scoreBadgeHtml(r.search_score)}</td>
+                <td><div class="flex items-center gap-1.5 flex-wrap">${alternativesHtml}</div></td>
+            </tr>
+        `;
+      })
+      .join("");
+
+    updateSelectionCount();
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // تحديد الفاشلة فقط
+  // ═══════════════════════════════════════════════════════════
+  function selectOnlyFailed() {
+    let count = 0;
+    document.querySelectorAll(".result-checkbox").forEach((cb) => {
+      const idx = parseInt(cb.dataset.index);
+      const r = currentResults[idx];
+      const isFailed =
+        !r.search_success ||
+        !r.image_url ||
+        r.decision === "manual_review" ||
+        r.decision === "ai_rejected_all" ||
+        (r.search_score || 0) < 60;
+      cb.checked = isFailed;
+      if (isFailed) count++;
+    });
+    updateSelectionCount();
+    alert(count > 0 ? `تم تحديد ${count} منتجاً بحاجة لمراجعة` : "جميع المنتجات مكتملة بصور ممتازة!");
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // معاينة الصورة
+  // ═══════════════════════════════════════════════════════════
+  function openPreviewModal(productIndex, candidateIndex = -1) {
+    const product = currentResults[productIndex];
+    if (!product) return;
+
+    let targetUrl = "";
+    let targetTitle = "";
+
+    if (candidateIndex === -1) {
+      targetUrl = product.image_url || product.candidates?.[0]?.image_url || "";
+      targetTitle = product.top_title || product.candidates?.[0]?.title || "الصورة الأساسية الحالية";
+    } else {
+      const cand = product.candidates?.[candidateIndex];
+      if (cand) {
+        targetUrl = cand.image_url;
+        targetTitle = `${cand.title || "صورة بديلة"} - درجة المطابقة: ${cand.score || ""}%`;
+      }
+    }
+
+    if (!targetUrl) return;
+
+    currentPreviewContext = {
+      productIndex,
+      candidateIndex,
+      imageUrl: targetUrl,
+    };
+
+    document.getElementById("preview-image").src = targetUrl;
+    document.getElementById("preview-title").textContent = product.name;
+    document.getElementById("preview-info").textContent = targetTitle;
+
+    const setBtn = document.getElementById("set-as-main-btn");
+    const currentBadge = document.getElementById("current-main-badge");
+
+    const currentMain = product.image_url || product.candidates?.[0]?.image_url;
+    const isCurrentMain = targetUrl === currentMain;
+
+    if (isCurrentMain) {
+      currentBadge.classList.remove("hidden");
+      setBtn.classList.remove("hidden");
+      setBtn.disabled = true;
+      setBtn.innerHTML = "✅ هذه هي الصورة الأساسية المعتمدة";
+    } else {
+      currentBadge.classList.add("hidden");
+      setBtn.classList.remove("hidden");
+      setBtn.disabled = false;
+      setBtn.innerHTML = "⭐ تعيين كصورة أساسية لهذا المنتج";
+    }
+
+    document.getElementById("image-preview-modal").showModal();
+  }
+
+  function openPreview(imageUrl, productName, info, productIndex = null, isAlternative = false) {
+    if (productIndex !== null && productIndex >= 0) {
+      const product = currentResults[productIndex];
+      if (product && product.candidates) {
+        const cIdx = product.candidates.findIndex((c) => c.image_url === imageUrl);
+        if (cIdx >= 0) {
+          openPreviewModal(productIndex, cIdx);
+          return;
+        }
+      }
+      openPreviewModal(productIndex, -1);
+      return;
+    }
+    document.getElementById("preview-image").src = imageUrl;
+    document.getElementById("preview-title").textContent = productName;
+    document.getElementById("preview-info").textContent = info || "";
+    document.getElementById("set-as-main-btn").classList.add("hidden");
+    document.getElementById("current-main-badge").classList.add("hidden");
+    document.getElementById("image-preview-modal").showModal();
+  }
+
+  function setAsMainImage() {
+    if (!currentPreviewContext || currentPreviewContext.productIndex === null) return;
+    const idx = currentPreviewContext.productIndex;
+    const imageUrl = currentPreviewContext.imageUrl;
+    const candidateIndex = currentPreviewContext.candidateIndex;
+    const product = currentResults[idx];
+    if (!product) return;
+
+    product.image_url = imageUrl;
+    product.search_success = true;
+    product.search_score = 100;
+    product.manual_selection = true;
+    product.decision = "accepted";
+
+    // إعادة ترتيب قائمة البدائل لتكون الصورة المختارة في أول القائمة
+    if (Array.isArray(product.candidates) && product.candidates.length > 0) {
+      let chosenCand = null;
+      if (candidateIndex !== undefined && candidateIndex >= 0 && product.candidates[candidateIndex]) {
+        chosenCand = product.candidates.splice(candidateIndex, 1)[0];
+      } else {
+        const foundIdx = product.candidates.findIndex((c) => c.image_url === imageUrl);
+        if (foundIdx >= 0) {
+          chosenCand = product.candidates.splice(foundIdx, 1)[0];
+        }
+      }
+      if (chosenCand) {
+        chosenCand.score = 100;
+        product.candidates.unshift(chosenCand);
+      } else {
+        product.candidates.unshift({
+          image_url: imageUrl,
+          title: product.name,
+          score: 100,
+        });
+      }
+    } else {
+      product.candidates = [{
+        image_url: imageUrl,
+        title: product.name,
+        score: 100,
+      }];
+    }
+
+    document.getElementById("image-preview-modal").close();
+    renderResults(currentResults);
+
+    // التأكد من أن المنتج محدد في قائمة التصدير
+    const cb = document.querySelector(`.result-checkbox[data-index="${idx}"]`);
+    if (cb) {
+      cb.checked = true;
+      updateSelectionCount();
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // إدارة التحديد
+  // ═══════════════════════════════════════════════════════════
+  function toggleSelectAll(checked) {
+    document.querySelectorAll(".result-checkbox").forEach((cb) => (cb.checked = checked));
+    updateSelectionCount();
+  }
+
+  function updateSelectionCount() {
+    const selected = document.querySelectorAll(".result-checkbox:checked");
+    const count = selected.length;
+    const total = document.querySelectorAll(".result-checkbox").length;
+
+    document.getElementById("selected-products-count").textContent = `${count} محدد`;
+
+    const toolbarSelected = document.getElementById("toolbar-selected-count");
+    if (toolbarSelected) {
+      if (count > 0) {
+        toolbarSelected.textContent = `${count} محدد`;
+        toolbarSelected.classList.remove("hidden");
+      } else {
+        toolbarSelected.classList.add("hidden");
+      }
+    }
+
+    // تحديث نصوص أزرار التصدير
+    const exportLabels = document.querySelectorAll(".export-btn-label");
+    exportLabels.forEach((el) => {
+      if (count > 0 && count < total) {
+        el.innerHTML = `📥 تصدير المحدد (${count}) <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>`;
+      } else if (count === total && total > 0) {
+        el.innerHTML = `📥 تصدير الكل (${total}) <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>`;
+      } else {
+        el.innerHTML = `📥 تصدير قالب Salla <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>`;
+      }
+    });
+
+    const reanalyzeBtn = document.getElementById("reanalyze-selected-btn");
+    if (reanalyzeBtn) reanalyzeBtn.disabled = count === 0;
+
+    const selectAll = document.getElementById("select-all-products");
+    if (selectAll) {
+      selectAll.checked = count === total && count > 0;
+      selectAll.indeterminate = count > 0 && count < total;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // إعادة اختبار المحدد
+  // ═══════════════════════════════════════════════════════════
+  async function reanalyzeSelected() {
+    const selected = Array.from(document.querySelectorAll(".result-checkbox:checked"));
+    if (selected.length === 0) return;
+    if (!confirm(`سيتم إعادة فحص ${selected.length} منتجاً بالذكاء الاصطناعي. متابعة؟`)) return;
+
+    const productsToReanalyze = selected.map((cb) => {
+      const idx = parseInt(cb.dataset.index);
+      const r = currentResults[idx];
+      return {
+        row: r.row,
+        name: r.name,
+        barcode: r.barcode,
+        price: r.price,
+        quantity: r.quantity,
+        description: r.description,
+      };
+    });
+
+    document.getElementById("progress-panel").classList.remove("hidden");
+    document.getElementById("results-panel").classList.add("hidden");
+    document.getElementById("progress-count").textContent = `0 / ${productsToReanalyze.length}`;
+    document.getElementById("progress-status").textContent = "🔧 تجهيز محرك البحث...";
+    document.getElementById("progress-detail").textContent = "إعادة فحص المنتجات المحددة...";
+
+    const useAiInput = document.getElementById("use-ai") || document.getElementById("use-ai-2");
+    const useAi = useAiInput?.checked ?? true;
+    const jobId = "re_" + Date.now();
+
+    let fakeProgress = 0;
+    const interval = setInterval(() => {
+      fakeProgress = Math.min(fakeProgress + 8, 90);
+      document.getElementById("progress-circle").style.setProperty("--value", fakeProgress);
+      document.getElementById("progress-circle").textContent = fakeProgress + "%";
+      const fillEl = document.getElementById("progress-bar-fill");
+      if (fillEl) fillEl.style.width = fakeProgress + "%";
+    }, 400);
+
+    try {
+      const res = await fetch("/api/search-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          products: productsToReanalyze,
+          use_ai: useAi,
+          job_id: jobId,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "فشل إعادة الاختبار");
+
+      clearInterval(interval);
+      document.getElementById("progress-circle").style.setProperty("--value", 100);
+      document.getElementById("progress-circle").textContent = "100%";
+      document.getElementById("progress-status").textContent = "✅ اكتملت إعادة الاختبار";
+
+      selected.forEach((cb, i) => {
+        const idx = parseInt(cb.dataset.index);
+        currentResults[idx] = data.results[i];
+      });
+
+      setTimeout(() => {
+        document.getElementById("progress-panel").classList.add("hidden");
+        document.getElementById("results-panel").classList.remove("hidden");
+        renderResults(currentResults);
+      }, 700);
+    } catch (e) {
+      clearInterval(interval);
+      alert("❌ " + e.message);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // تصدير قوالب سلة المعتمدة
+  // ═══════════════════════════════════════════════════════════
+  async function exportSallaTemplate(templateType = "new") {
+    if (!currentResults.length) {
+      alert("لا توجد نتائج للتصدير");
+      return;
+    }
+
+    const selectedCheckboxes = Array.from(document.querySelectorAll(".result-checkbox:checked"));
+
+    let itemsToExport = [];
+    if (selectedCheckboxes.length > 0) {
+      itemsToExport = selectedCheckboxes
+        .map((cb) => currentResults[parseInt(cb.dataset.index)])
+        .filter(Boolean);
+    } else {
+      const confirmAll = confirm(
+        `لم تقم بتحديد منتجات معينة. هل ترغب في تصدير جميع المنتجات (${currentResults.length} منتج)؟\n\nملاحظة: يمكنك تحديد منتجات معينة عبر مربعات الاختيار في الجدول أو خيار 'تحديد الكل'.`
+      );
+      if (!confirmAll) return;
+      itemsToExport = currentResults;
+    }
+
+    const dataToSend = itemsToExport.map((r) => ({
+      name: r.name,
+      barcode: r.barcode,
+      sku: r.sku || r.barcode,
+      price: r.price,
+      quantity: r.quantity,
+      description: r.description,
+      category: r.category || "",
+      product_type: r.product_type || "",
+      image_url: r.image_url || r.candidates?.[0]?.image_url || "",
+      top_title: r.top_title || "",
+      status: r.status || "متاح",
+      no: r.no || r.row,
+    }));
+
+    try {
+      const res = await fetch("/api/export-salla-template", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          results: dataToSend,
+          template_type: templateType,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || "فشل التصدير");
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const prefix = templateType === "update" ? "salla_update" : "salla_new";
+      link.download = `${prefix}_products_${Date.now()}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("❌ " + e.message);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // إعادة تعيين الشاشة
+  // ═══════════════════════════════════════════════════════════
+  function resetAll() {
+    if (currentResults.length > 0 && !confirm("سيتم فقدان النتائج الحالية والعودة للبداية. متابعة؟")) return;
+
+    document.getElementById("upload-panel").classList.remove("hidden");
+    document.getElementById("preview-panel").classList.add("hidden");
+    document.getElementById("results-panel").classList.add("hidden");
+    document.getElementById("progress-panel").classList.add("hidden");
+    document.getElementById("sticky-toolbar").classList.add("hidden");
+    document.getElementById("excel-file").value = "";
+    const display = document.getElementById("file-name-display");
+    if (display) display.textContent = "اضغط هنا لاختيار الملف أو أفلته داخل هذا الإطار";
+
+    parsedProducts = [];
+    currentResults = [];
+    currentPreviewContext = null;
+    updateRibbon(1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Helpers
+  // ═══════════════════════════════════════════════════════════
+  function escapeHtml(text) {
+    if (text === null || text === undefined) return "";
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function escapeAttr(text) {
+    return String(text || "")
+      .replace(/'/g, "\'")
+      .replace(/"/g, "&quot;");
+  }
+
+  // التهيئة الأولية
+  updateRibbon(1);
+</script>
+{% endblock %}
